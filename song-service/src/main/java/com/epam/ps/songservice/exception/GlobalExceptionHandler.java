@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toMap(
                         FieldError::getField,
                         DefaultMessageSourceResolvable::getDefaultMessage,
-                        (msg1, msg2) -> msg1 // in case of duplicate keys
+                        (msg1, msg2) -> msg1
                 ));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(
@@ -56,8 +56,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleServerError(Exception ex) {
-        ex.printStackTrace(); // Add this line for debugging
-
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                         "errorMessage", "An error occurred on the server",

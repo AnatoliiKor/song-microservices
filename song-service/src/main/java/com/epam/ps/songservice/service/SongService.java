@@ -41,8 +41,11 @@ public class SongService {
     }
 
     public List<Long> deleteSongsByCsv(String idsCsv) {
-        if (idsCsv == null || idsCsv.length() > 200) {
-            throw new IllegalArgumentException("CSV string format is invalid or exceeds length restrictions");
+        if (idsCsv == null) {
+            throw new IllegalArgumentException("CSV string can not be null");
+        }
+        if (idsCsv.length() > 200) {
+            throw new IllegalArgumentException("CSV string exceeds length restrictions. Max length is 200 characters. Current length: " + idsCsv.length());
         }
         List<Long> ids = parseAndValidateIds(idsCsv);
         List<Long> deleted = new ArrayList<>();
@@ -56,16 +59,21 @@ public class SongService {
     }
 
     private List<Long> parseAndValidateIds(String idsCsv) {
-        try {
-            return Arrays.stream(idsCsv.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .map(Long::parseLong)
-                    .filter(id -> id > 0)
-                    .collect(Collectors.toList());
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("CSV string contains invalid IDs");
+        List<Long> ids = new ArrayList<>();
+        for (String s : idsCsv.split(",")) {
+            String trimmed = s.trim();
+            if (trimmed.isEmpty()) continue;
+            try {
+                long id = Long.parseLong(trimmed);
+                if (id <= 0) {
+                    throw new IllegalArgumentException("Invalid ID: '" + trimmed + "'. Only positive integers are allowed.");
+                }
+                ids.add(id);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid ID format: '" + trimmed + "'. Only positive integers are allowed.");
+            }
         }
+        return ids;
     }
 
     private void validateId(Long id) {
