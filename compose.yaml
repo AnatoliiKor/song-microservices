@@ -3,15 +3,46 @@ services:
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: resource-db
-      POSTGRES_USER: postgres  # Default, can be omitted if unchanged
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${RESOURCE_DB_USERNAME}
+      POSTGRES_PASSWORD: ${RESOURCE_DB_PASSWORD}
     ports:
       - "5430:5432"
+    volumes:
+      - ./init-scripts/resource-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
   song-db:
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: song-db
-      POSTGRES_USER: postgres  # Default, can be omitted if unchanged
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${SONG_DB_USERNAME}
+      POSTGRES_PASSWORD: ${SONG_DB_PASSWORD}
     ports:
       - "5431:5432"
+    volumes:
+      - ./init-scripts/song-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  resource-service:
+    build: ./resource-service
+    ports:
+      - "${RESOURCE_SERVICE_PORT}:8082"
+    environment:
+      RESOURCE_DB_URL: ${RESOURCE_DB_URL}
+      RESOURCE_DB_USERNAME: ${RESOURCE_DB_USERNAME}
+      RESOURCE_DB_PASSWORD: ${RESOURCE_DB_PASSWORD}
+      RESOURCE_SERVICE_PORT: ${RESOURCE_SERVICE_PORT}
+      SONG_SERVICE_URL: ${SONG_SERVICE_URL}
+    depends_on:
+      - resource-db
+      - song-service
+
+  song-service:
+    build: ./song-service
+    ports:
+      - "${SONG_SERVICE_PORT}:8081"
+    environment:
+      SONG_DB_URL: ${SONG_DB_URL}
+      SONG_DB_USERNAME: ${SONG_DB_USERNAME}
+      SONG_DB_PASSWORD: ${SONG_DB_PASSWORD}
+      SONG_SERVICE_PORT: ${SONG_SERVICE_PORT}
+    depends_on:
+      - song-db
