@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   resource-db:
     image: postgres:17-alpine
